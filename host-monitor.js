@@ -31,9 +31,9 @@ function sendEmail(host, message) {
 
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-            console.error('Error sending email:', error);
+            logWithTimestamp('Error sending email:', error);
         } else {
-            console.log('Email sent:', info.response);
+            logWithTimestamp('Email sent:', info.response);
         }
     });
 }
@@ -41,10 +41,10 @@ function sendEmail(host, message) {
 function checkHostWithPing(host) {
     ping.sys.probe(host, (isAlive) => {
         if (!isAlive) {
-            console.log(`PING FAILED: Host ${host} is down. Trying HTTP request.`);
+            logWithTimestamp(`PING FAILED: Host ${host} is down. Trying HTTP request.`);
             checkHostWithHTTP(host);
         } else {
-            console.log(`PING SUCCESS: Host ${host} is up.`);
+            logWithTimestamp(`PING SUCCESS: Host ${host} is up.`);
         }
     });
 }
@@ -53,17 +53,22 @@ async function checkHostWithHTTP(host) {
     try {
         const response = await axios.get(`https://${host}`);
         if (response.status === 200) {
-            console.log(`HTTPS SUCCESS: Host ${host} is up.`);
+            logWithTimestamp(`HTTPS SUCCESS: Host ${host} is up.`);
         } else {
             console.log(`HTTPS FAILED: Host ${host} returned a non-200 status code. Sending an email.`);
             var message = 'Returned a non-200 status code';
             sendEmail(host, message);
         }
     } catch (error) {
-        console.log(`HTTP FAILED: Host ${host} is down. Sending an email.`);
+        logWithTimestamp(`HTTPS FAILED: Host ${host} is down. Sending an email.`);
         var message = 'Error: ' + error;
         sendEmail(host, message);
     }
+}
+
+function logWithTimestamp(message) {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] ${message}`);
 }
 
 setInterval(() => {
